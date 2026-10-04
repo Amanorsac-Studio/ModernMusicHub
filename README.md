@@ -17,6 +17,24 @@ A static website (plain HTML, CSS and a little JavaScript, no build step) laid o
 | `about.html` | Founder story and what we believe |
 | `brand.html` | Brand guide: logos, palette, program colours, type, voice, graphics, photography |
 
+## Accounts, the Hub and the admin dashboard
+
+| Page | Who | What |
+| --- | --- | --- |
+| `login.html` | Everyone | Sign in, or create an account |
+| `hub.html` | Students | Home, My Learning (lessons by level with video and practice steps), Live Sessions, Feedback, Settings |
+| `admin.html` | Admins and teachers | Overview, trial requests, students, lessons, live sessions, feedback queue, announcements |
+
+- **The first account created becomes the admin.** Sign up at `/login.html` straight after the first deploy.
+- New student sign-ups wait for approval: approve them under **Students** and choose their programs.
+- The website's trial form saves into **Trial requests**. The call-in schedule on the Online Hub page comes from **Live sessions**, and meeting links are shown only to signed-in students.
+- Lesson videos: paste a YouTube (unlisted is fine) or Vimeo link and it plays inside the Hub.
+- Forgotten passwords: open the student under **Students** and press **Reset password** to get a temporary one to send them.
+
+The backend is `worker.js` (Cloudflare Worker) with a Cloudflare D1 database bound as `DB`. Wrangler creates the database on the first deploy and the Worker creates its tables and starter lessons on the first request, so there is nothing to run by hand. Passwords are hashed with PBKDF2; sessions are HttpOnly cookies.
+
+Run it locally with `npx wrangler dev --persist-to ../mmh-state` (keep the state folder outside the repo, or the dev server reloads itself).
+
 ## Editing
 
 - **Contact details, social links and the weekly call-in times** live in the `MMH` block at the top of `assets/mmh.js`. The header and footer are drawn from there on every page.

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sign in | Modern Music Hub</title>
+<meta name="description" content="Sign in to the Modern Music Hub: your lessons, live call-ins and teacher feedback.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/mmh.css">
+<link rel="stylesheet" href="assets/app.css">
+</head>
+<body>
+<div data-head></div>
+
+<main id="main" class="auth">
+  <div class="auth-card">
+    <div class="mark-big" id="mark"></div>
+    <h1 id="title">Welcome back.</h1>
+    <p id="lede">Sign in to your lessons, live call-ins and feedback.</p>
+    <div class="tabs" role="tablist">
+      <button type="button" class="on" data-tab="in" role="tab" aria-selected="true">Sign in</button>
+      <button type="button" data-tab="up" role="tab" aria-selected="false">Create account</button>
+    </div>
+    <form class="f" id="auth" novalidate>
+      <p class="err" id="err" role="alert"></p>
+      <label data-up hidden>Your name<input name="name" autocomplete="name"></label>
+      <label>Email<input name="email" type="email" autocomplete="email" required></label>
+      <label>Password<input name="password" type="password" autocomplete="current-password" required minlength="8"></label>
+      <label data-up hidden>What are you here for?
+        <select name="program">
+          <option value="">Not sure yet</option>
+          <option value="piano">Piano by Ear</option>
+          <option value="production">Music Production</option>
+          <option value="teenlab">Teen Producer Lab</option>
+          <option value="online">Online Hub</option>
+          <option value="private">Private lessons</option>
+        </select>
+      </label>
+      <button class="btn" type="submit" id="go">Sign in</button>
+    </form>
+    <p class="small" id="note">Forgot your password? Email us and we'll reset it for you.</p>
+  </div>
+</main>
+
+<script src="assets/mmh.js"></script>
+<script src="assets/app.js"></script>
+<script>
+(function(){
+  var $ = App.$, $$ = App.$$, mode = 'in';
+  $('#mark').innerHTML = App.MARK;
+  var params = new URLSearchParams(location.search);
+  // only ever follow a link back into this site
+  var next = params.get('next');
+  if(next && !/^\/[^\/\\]/.test(next)) next = null;
+
+  function setMode(m){
+    mode = m;
+    $$('.tabs button').forEach(function(b){ var on = b.getAttribute('data-tab') === m; b.classList.toggle('on', on); b.setAttribute('aria-selected', on); });
+    $$('[data-up]').forEach(function(el){ el.hidden = m !== 'up'; });
+    $('#title').textContent = m === 'up' ? 'Join the Hub.' : 'Welcome back.';
+    $('#lede').textContent = m === 'up'
+      ? 'Create your account. Your teacher will approve it and set up your lessons.'
+      : 'Sign in to your lessons, live call-ins and feedback.';
+    $('#go').textContent = m === 'up' ? 'Create my account' : 'Sign in';
+    $('input[name=password]').autocomplete = m === 'up' ? 'new-password' : 'current-password';
+    $('#err').classList.remove('show');
+  }
+  $$('.tabs button').forEach(function(b){ b.addEventListener('click', function(){ setMode(b.getAttribute('data-tab')); }); });
+  if(params.get('mode') === 'join') setMode('up');
+  var email = (typeof MMH !== 'undefined' && MMH.email) || '';
+  if(email) $('#note').innerHTML = 'Forgot your password? Email <a href="mailto:' + App.esc(email) + '">' + App.esc(email) + '</a> and we\'ll reset it for you.';
+
+  function land(user){
+    if(next){ location.href = next; return; }
+    location.href = (user.role === 'admin' || user.role === 'teacher') ? 'admin.html' : 'hub.html';
+  }
+  // already signed in? straight through
+  App.api('GET', '/me').then(function(d){ if(d.user) land(d.user); }).catch(function(){});
+
+  $('#auth').addEventListener('submit', function(e){
+    e.preventDefault();
+    var d = App.formData(this), err = $('#err'), btn = $('#go');
+    err.classList.remove('show');
+    btn.disabled = true;
+    App.api('POST', mode === 'up' ? '/auth/register' : '/auth/login', d)
+      .then(function(r){ land(r.user); })
+      .catch(function(x){ err.textContent = x.message; err.classList.add('show'); btn.disabled = false; });
+  });
+})();
+</script>
+</body>
+</html>

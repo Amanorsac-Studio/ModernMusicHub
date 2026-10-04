@@ -7,3 +7,4 @@ tools
 node_modules
 .wrangler
 .gitignore
+worker.js
