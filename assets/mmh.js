@@ -21,8 +21,8 @@ var MMH = {
   callins: [
     { day:"Tue", title:"Piano by Ear Live",   note:"Bring a song you love. We work out the chords together.", time:"7:00 PM ET", k:"var(--orange)" },
     { day:"Thu", title:"Producer Lab Live",    note:"Share your screen, get feedback on your beat in Fender Studio.", time:"7:00 PM ET", k:"var(--violet)" },
-    { day:"Sat", title:"Teen Beat Club",       note:"Monthly challenge, listening party and shout-outs. Ages 12-18.", time:"11:00 AM ET", k:"var(--sun)" },
-    { day:"Sun", title:"Open Office Hours",    note:"Stuck on something? Drop in with any question, any level.", time:"4:00 PM ET", k:"var(--sky)" }
+    { day:"Sat", title:"Teen Beat Club",       note:"Monthly challenge, listening party and shout-outs. Ages 12-18.", time:"5:30 PM ET", k:"var(--sun)" },
+    { day:"Sun", title:"Open Office Hours",    note:"Stuck on something? Drop in with any question, any level.", time:"6:00 PM ET", k:"var(--sky)" }
   ]
 };
 /* ==================== stop editing here ==================== */
@@ -45,7 +45,7 @@ var MMH = {
     ['production','Production','var(--violet)'],
     ['online','Online Hub','var(--sky)'],
     ['charlottesville','In Person','var(--pink)'],
-    ['plans','Plans','var(--lime)'],
+    ['plans','Programs','var(--lime)'],
     ['about','About','var(--sun)']
   ];
 
@@ -84,10 +84,10 @@ var MMH = {
     foot.outerHTML =
       '<div class="keys-rule" aria-hidden="true"></div><footer class="sfoot"><div class="cols">' +
         '<div class="sf-brand"><img src="images/brand/logo-on-dark.svg" alt="Modern Music Hub. Learn. Create. Produce." width="364" height="122">' +
-          '<p>Piano by ear and music production lessons for teens and adults.</p><p>In person in '+MMH.city+', and online everywhere.</p>' +
+          '<p>Piano by ear and music production lessons for teens and adults.</p><p>In person in '+MMH.city+', and online everywhere.</p><p>After school, evenings and weekends. Email is the best way to reach us.</p>' +
           '<div class="social">'+soc+'</div></div>' +
         '<div><h4>Learn</h4><ul><li><a href="piano.html">Piano by Ear</a></li><li><a href="production.html">Music Production</a></li><li><a href="production.html#fender-studio">Fender Studio</a></li><li><a href="piano.html#path">The Learning Path</a></li></ul></div>' +
-        '<div><h4>Join</h4><ul><li><a href="online.html">Online Hub</a></li><li><a href="charlottesville.html">In Person, Charlottesville</a></li><li><a href="charlottesville.html#teens">Teen Producer Lab</a></li><li><a href="plans.html">Plans and Pricing</a></li></ul></div>' +
+        '<div><h4>Join</h4><ul><li><a href="online.html">Online Hub</a></li><li><a href="charlottesville.html">In Person, Charlottesville</a></li><li><a href="charlottesville.html#teens">Teen Producer Lab</a></li><li><a href="plans.html">Programs</a></li></ul></div>' +
         '<div><h4>Hub</h4><ul><li><a href="online.html#callins">Weekly Call-Ins</a></li><li><a href="plans.html#faq">FAQ</a></li><li><a href="about.html">About</a></li><li><a href="brand.html">Brand Guide</a></li></ul></div>' +
         '<div><h4>Start</h4><ul><li><a href="plans.html#trial">Free trial lesson</a></li><li><a href="mailto:'+MMH.email+'">'+MMH.email+'</a></li><li><a href="https://amanorsac.studio" target="_blank" rel="noopener">Amanorsac Studio</a></li></ul></div>' +
       '</div><div class="base"><span>&copy; '+new Date().getFullYear()+' Modern Music Hub</span><span>Learn. Create. Produce.</span><span>'+MMH.city+' and online</span></div></footer>';

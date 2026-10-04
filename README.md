@@ -13,7 +13,7 @@ A static website (plain HTML, CSS and a little JavaScript, no build step) laid o
 | `production.html` | Music Production in Fender Studio: skills, why Fender Studio, the producer path, FAQ |
 | `online.html` | Online Hub: library, weekly live call-ins schedule, a week in the Hub, 7-day trial |
 | `charlottesville.html` | In person: private lessons, Teen Producer Lab, adult classes, Beat Camp, the studio |
-| `plans.html` | Plans and pricing, the free trial lesson form, FAQ |
+| `plans.html` | Programs (no prices yet), the free trial lesson form, FAQ |
 | `about.html` | Founder story and what we believe |
 | `brand.html` | Brand guide: logos, palette, program colours, type, voice, graphics, photography |
 
@@ -51,7 +51,7 @@ This writes `images/photos/<name>.webp` (2400px) and `<name>-1200.webp`. Until t
 
 ## To confirm before launch
 
-Prices, call-in times, the email address, the studio address, class sizes, ages, Beat Camp and adult class details, and the background-check statement are all written as sensible defaults. Check each one against how the academy actually runs.
+Call-in times (all outside 8 AM to 5 PM on weekdays), the email address (placeholder), the studio address, ages, Beat Camp and adult class details, and the background-check statement are all written as sensible defaults. Check each one against how the academy actually runs.
 
 ## Preview locally
 
@@ -59,3 +59,11 @@ Prices, call-in times, the email address, the studio address, class sizes, ages,
 python3 -m http.server 8000
 # open http://localhost:8000
 ```
+
+## Hours
+
+Modern Music Hub is an extracurricular program: weekday sessions start at 5 PM, plus Saturdays and Sundays. Nothing is scheduled 8 AM to 5 PM on weekdays, and the site asks people to email rather than call. Groups are capped at six.
+
+## Deploying
+
+The site is served by the Cloudflare Worker `modernmusichub` as static assets (`wrangler.jsonc`). With the repository connected under Workers Builds, every push to `main` deploys. To deploy by hand: `npx wrangler deploy`.

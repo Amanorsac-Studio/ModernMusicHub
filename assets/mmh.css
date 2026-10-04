@@ -247,6 +247,8 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.025em}
 .plan .for{color:var(--ink-2);font-size:15px;margin:0 0 18px}
 .plan .price{font-family:var(--display);font-weight:800;font-size:46px;letter-spacing:-.04em;line-height:1;margin:0 0 4px}
 .plan .price small{font-size:16px;font-weight:600;letter-spacing:0;color:var(--ink-2)}
+.plan .when{font-family:var(--display);font-weight:700;font-size:16px;line-height:1.4;margin:0 0 20px}
+.plan.hot .when{color:var(--cream)}
 .plan .note{font-size:13.5px;color:var(--ink-2);margin:0 0 20px}
 .plan .checks{flex:1}
 .plan .checks li{font-size:15.5px}
