@@ -1,16 +1,30 @@
-/* How Cloudflare serves this site: the Worker "modernmusichub" with no
-   script of its own, only static assets. Every file in the repository
-   root is served at its own address, apart from what .assetsignore
-   leaves out. An address that matches nothing gets 404.html. */
+/* How Cloudflare serves this site: the Worker "modernmusichub".
+
+   Requests for files (every page, image and stylesheet) are answered
+   straight from the static assets and never run any code. Requests
+   under /api/ go to worker.js first: logins, the student Hub, the admin
+   dashboard and the trial form. An address that matches nothing gets
+   404.html.
+
+   The database is Cloudflare D1, bound as DB. It has no database_id on
+   purpose: on the first deploy Wrangler creates the database and links
+   it to the Worker. worker.js creates its own tables on the first
+   request, so there are no migrations to run. */
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "modernmusichub",
+  "main": "worker.js",
   "compatibility_date": "2026-10-01",
   "observability": { "enabled": true },
   "preview_urls": true,
   "assets": {
     "directory": ".",
+    "binding": "ASSETS",
     "not_found_handling": "404-page",
-    "html_handling": "auto-trailing-slash"
-  }
+    "html_handling": "auto-trailing-slash",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    { "binding": "DB", "database_name": "modernmusichub" }
+  ]
 }

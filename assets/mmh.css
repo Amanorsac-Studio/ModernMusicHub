@@ -344,3 +344,9 @@ h1,h2,h3,h4{font-family:var(--display);letter-spacing:-.025em}
 .paper .slot .day{color:#111;background:var(--k);padding:6px 10px;border-radius:10px;text-align:center}
 @media (max-width:620px){ .paper .slot .day{justify-self:start} }
 @media (max-width:600px){ .split-img::after{right:-8px;bottom:-8px} }
+
+/* the sign-in link in the site bar */
+.gnav .signin{margin-left:auto;color:#c9c5bd;text-decoration:none;font-weight:600;white-space:nowrap}
+.gnav .signin:hover{color:#fff}
+.gnav .signin + .cta{margin-left:0}
+.hp{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}

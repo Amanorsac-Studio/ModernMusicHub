@@ -58,6 +58,7 @@ var MMH = {
         '<nav aria-label="Site" id="site-nav">' + NAV.map(function(n){
           return '<a href="'+n[0]+'.html" style="--k:'+n[2]+'"'+(here===n[0]?' aria-current="page"':'')+'>'+n[1]+'</a>';
         }).join('') + '</nav>' +
+        '<a class="signin" id="signin" href="login.html">Sign in</a>' +
         '<a class="btn sm cta" href="plans.html#trial">Free trial lesson</a>' +
         '<button class="menu-btn" type="button" aria-label="Menu" aria-expanded="false" aria-controls="site-nav">' +
           '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>' +
@@ -67,6 +68,14 @@ var MMH = {
       var open = g.classList.toggle('open');
       mb.setAttribute('aria-expanded', String(open));
     });
+    /* signed in? the link becomes the way back to your Hub */
+    fetch('/api/me', { credentials:'same-origin' }).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      var u = d && d.user, a = $('#signin');
+      if(!u || !a) return;
+      var staff = u.role === 'admin' || u.role === 'teacher';
+      a.textContent = staff ? 'Dashboard' : 'My Hub';
+      a.href = staff ? 'admin.html' : 'hub.html';
+    }).catch(function(){});
   }
 
   var ICONS = {
@@ -93,12 +102,24 @@ var MMH = {
       '</div><div class="base"><span>&copy; '+new Date().getFullYear()+' Modern Music Hub</span><span>Learn. Create. Produce.</span><span>'+MMH.city+' and online</span></div></footer>';
   }
 
-  /* ---- the weekly call-in list, wherever a page asks for it ---- */
-  $$('[data-callins]').forEach(function(box){
-    box.innerHTML = MMH.callins.map(function(c){
-      return '<div class="slot" style="--k:'+c.k+'"><span class="day">'+c.day+'</span><span><b>'+c.title+'</b><small>'+c.note+'</small></span><span class="time">'+c.time+'</span></div>';
+  /* ---- the weekly call-in list, wherever a page asks for it.
+     The schedule is edited in the admin dashboard; MMH.callins above is
+     only what shows if the backend can't be reached. ---- */
+  function esc(s){ return String(s == null ? '' : s).replace(/[&<>"']/g, function(c){ return '&#'+c.charCodeAt(0)+';'; }); }
+  function slots(list){
+    return list.map(function(c){
+      return '<div class="slot" style="--k:'+esc(c.k)+'"><span class="day">'+esc(c.day)+'</span><span><b>'+esc(c.title)+'</b><small>'+esc(c.note)+'</small></span><span class="time">'+esc(c.time)+'</span></div>';
     }).join('');
-  });
+  }
+  var boxes = $$('[data-callins]');
+  if(boxes.length){
+    boxes.forEach(function(box){ box.innerHTML = slots(MMH.callins); });
+    fetch('/api/callins').then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if(!d || !d.callins || !d.callins.length) return;
+      var list = d.callins.map(function(c){ return { day:c.day, title:c.title, note:c.note, time:c.time_text, k:'var(--'+c.color+')' }; });
+      boxes.forEach(function(box){ box.innerHTML = slots(list); });
+    }).catch(function(){});
+  }
 
   /* ---- photos: served from images/photos; until they have been fetched
      into the repo (tools/fetch-photos.sh), fall back to the originals ---- */
@@ -131,17 +152,26 @@ var MMH = {
     $$('.rise').forEach(function(el){ io.observe(el); });
   } else { $$('.rise').forEach(function(el){ el.classList.add('in-view'); }); }
 
-  /* ---- forms: Formspree if configured, otherwise the email app ---- */
+  /* ---- the trial form: straight into the admin dashboard. If the
+     backend can't be reached, Formspree if configured, else email. ---- */
   $$('form.cform').forEach(function(f){
     f.addEventListener('submit', function(e){
       e.preventDefault();
-      var data = new FormData(f), lines = [];
-      data.forEach(function(v,k){ if(String(v).trim()) lines.push(k + ': ' + v); });
-      if(MMH.formEndpoint){
-        fetch(MMH.formEndpoint, { method:'POST', body:data, headers:{ 'Accept':'application/json' } })
-          .then(function(r){ if(!r.ok) throw 0; f.classList.add('sent'); })
-          .catch(function(){ mail(); });
-      } else { mail(); }
+      var data = new FormData(f), lines = [], obj = {};
+      data.forEach(function(v,k){ obj[k] = v; if(String(v).trim()) lines.push(k + ': ' + v); });
+      var btn = $('button[type=submit]', f); if(btn) btn.disabled = true;
+      fetch('/api/trial', { method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify(obj) })
+        .then(function(r){ if(!r.ok) throw 0; f.classList.add('sent'); })
+        .catch(fallback)
+        .then(function(){ if(btn) btn.disabled = false; });
+      function fallback(){
+        if(MMH.formEndpoint){
+          return fetch(MMH.formEndpoint, { method:'POST', body:data, headers:{ 'Accept':'application/json' } })
+            .then(function(r){ if(!r.ok) throw 0; f.classList.add('sent'); })
+            .catch(mail);
+        }
+        mail();
+      }
       function mail(){
         location.href = 'mailto:' + MMH.email + '?subject=' + encodeURIComponent(f.getAttribute('data-subject') || 'Modern Music Hub') +
           '&body=' + encodeURIComponent(lines.join('\n'));
