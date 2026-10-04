@@ -1,0 +1,16 @@
+/* How Cloudflare serves this site: the Worker "modernmusichub" with no
+   script of its own, only static assets. Every file in the repository
+   root is served at its own address, apart from what .assetsignore
+   leaves out. An address that matches nothing gets 404.html. */
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "modernmusichub",
+  "compatibility_date": "2026-10-01",
+  "observability": { "enabled": true },
+  "preview_urls": true,
+  "assets": {
+    "directory": ".",
+    "not_found_handling": "404-page",
+    "html_handling": "auto-trailing-slash"
+  }
+}

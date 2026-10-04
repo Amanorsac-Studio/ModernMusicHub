@@ -1,0 +1,9 @@
+# Files in the repository that are not part of the website.
+wrangler.jsonc
+README.md
+tools
+.git
+.github
+node_modules
+.wrangler
+.gitignore

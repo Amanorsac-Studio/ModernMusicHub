@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Brand Guide | Modern Music Hub</title>
+<meta name="description" content="The Modern Music Hub brand identity: logo, colour palette, typography, voice, graphic elements and photography direction.">
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#111111">
+<link rel="icon" href="images/favicon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Montserrat:wght@600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/mmh.css">
+<style>
+  .bg{max-width:1200px;margin:0 auto;padding:0 var(--gut)}
+  .bg-sec{padding:clamp(48px,8vh,88px) 0;border-top:1px solid var(--paper-line)}
+  .bg-sec:first-child{border-top:0}
+  .lab{font-family:var(--body);font-size:12px;font-weight:600;letter-spacing:.32em;text-transform:uppercase;color:var(--ink-2);margin:0 0 22px}
+  .bg h2{font-weight:800;font-size:clamp(30px,4vw,48px);letter-spacing:-.035em;line-height:1.02;margin:0 0 12px}
+  .bg .lede{color:var(--ink-2);max-width:62ch;margin:0 0 30px;font-size:17px}
+  .grid{display:grid;gap:16px}
+  .g2{grid-template-columns:repeat(2,1fr)} .g3{grid-template-columns:repeat(3,1fr)} .g4{grid-template-columns:repeat(4,1fr)}
+  @media (max-width:900px){ .g3,.g4{grid-template-columns:1fr 1fr} }
+  @media (max-width:560px){ .g2,.g3,.g4{grid-template-columns:1fr} }
+  .card{border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.05),0 14px 34px -26px rgba(0,0,0,.4)}
+  .card .art{display:grid;place-items:center;padding:clamp(24px,4vw,44px);min-height:200px}
+  .card .art img{max-height:130px;width:auto}
+  .card .cap{padding:12px 16px;font-size:13.5px;color:var(--ink-2);border-top:1px solid var(--paper-line);display:flex;justify-content:space-between;gap:10px}
+  .card .cap a{color:#c2410c;font-weight:600;text-decoration:none}
+  .dark{background:var(--charcoal)} .cream{background:var(--cream)} .orange{background:var(--orange)}
+  .sw{border-radius:18px;overflow:hidden;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.05),0 14px 34px -26px rgba(0,0,0,.4)}
+  .sw .c{height:120px;display:flex;align-items:flex-end;padding:12px 14px;font-family:var(--display);font-weight:800;font-size:13px;letter-spacing:.04em}
+  .sw .t{padding:14px 16px}
+  .sw b{display:block;font-family:var(--display);font-size:16px}
+  .sw code{font-size:13px;color:var(--ink-2)}
+  .sw p{margin:6px 0 0;font-size:13.5px;color:var(--ink-2);line-height:1.45}
+  .ratio{display:flex;height:40px;border-radius:999px;overflow:hidden;margin:26px 0 8px}
+  .ratio span{display:block}
+  .type-big{font-family:var(--display);font-weight:800;font-size:clamp(80px,12vw,150px);line-height:.9;letter-spacing:-.05em;margin:0}
+  .type-body{font-family:var(--body);font-weight:400;font-size:clamp(80px,12vw,150px);line-height:.9;letter-spacing:-.04em;margin:0}
+  .spec{padding:28px;border-radius:18px;background:#fff;box-shadow:0 1px 0 rgba(0,0,0,.05),0 14px 34px -26px rgba(0,0,0,.4)}
+  .spec h3{font-size:20px;margin:16px 0 4px}
+  .spec p{margin:0;color:var(--ink-2);font-size:15px}
+  .scale > *{margin:0 0 10px}
+  .voice li{margin:0 0 8px}
+  .do,.dont{padding:24px;border-radius:18px}
+  .do{background:#eefbd4} .dont{background:#ffe1ec}
+  .do h3,.dont h3{margin:0 0 10px;font-size:18px}
+  .do ul,.dont ul{margin:0;padding-left:18px;color:var(--ink-2);font-size:15.5px}
+  .demo{border-radius:18px;background:var(--charcoal);color:var(--cream);padding:28px;min-height:170px;display:grid;align-content:space-between;gap:16px}
+  .demo small{font-size:12.5px;letter-spacing:.2em;text-transform:uppercase;color:#bdb8ae}
+  .midi{display:grid;gap:6px}
+  .midi div{height:14px;border-radius:4px}
+  .grid-trk{display:flex;gap:8px;height:90px;align-items:stretch}
+  .grid-trk i{width:3px;border-radius:2px;background:#3a3a3a;position:relative}
+  .grid-trk i::after{content:"";position:absolute;left:-3px;right:-3px;border-radius:2px;background:var(--k);top:var(--t);height:var(--h)}
+  .photos{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+  .photos img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:12px}
+  @media (max-width:760px){ .photos{grid-template-columns:1fr 1fr} }
+  .tagopts{list-style:none;padding:0;margin:0;display:grid;gap:8px;font-family:var(--display);font-weight:700;font-size:clamp(18px,2vw,22px)}
+  .tagopts li:first-child{color:#d4511a}
+  .key{display:inline-flex;align-items:center;gap:10px;margin:0 18px 10px 0;font-weight:600}
+  .key i{width:18px;height:18px;border-radius:6px;background:var(--k)}
+</style>
+</head>
+<body>
+<div data-head></div>
+
+<main id="main">
+
+<section class="hero" style="--k:var(--orange);padding-bottom:clamp(48px,8vh,88px)">
+  <p class="kick">Brand Guide &middot; Version 2.0 &middot; "Turn It Up"</p>
+  <h1>Modern Music Hub,<br><em>louder.</em></h1>
+  <p class="tag">The same piano-key mark, the same warm charcoal and cream, now with a pop palette that speaks to a fourteen-year-old producer and their parents at the same time.</p>
+</section>
+
+<div class="paper">
+<div class="bg">
+
+  <section class="bg-sec">
+    <p class="lab">Primary logo</p>
+    <h2>The mark is a keyboard and a mixer at once.</h2>
+    <p class="lede">Six bars read as piano keys, as faders and as MIDI blocks. The three bars with stems are the "black keys". In v2 each key takes one colour from the pop palette, left to right: orange, pink, lime, violet, sky, sunshine.</p>
+    <div class="grid g2">
+      <div class="card"><div class="art dark"><img src="images/brand/logo-on-dark.svg" alt="Full-colour horizontal logo on charcoal" width="364" height="122"></div><div class="cap"><span>Horizontal &middot; on dark</span><a href="images/brand/logo-on-dark.svg" download>SVG</a></div></div>
+      <div class="card"><div class="art cream"><img src="images/brand/logo-on-light.svg" alt="Full-colour horizontal logo on cream" width="364" height="122"></div><div class="cap"><span>Horizontal &middot; on light</span><a href="images/brand/logo-on-light.svg" download>SVG</a></div></div>
+    </div>
+    <div class="grid g2 mt">
+      <div class="card"><div class="art dark"><img src="images/brand/logo-stacked-on-dark.svg" alt="Stacked logo on charcoal" width="260" height="206" style="max-height:170px"></div><div class="cap"><span>Stacked &middot; on dark</span><a href="images/brand/logo-stacked-on-dark.svg" download>SVG</a></div></div>
+      <div class="card"><div class="art cream"><img src="images/brand/logo-stacked-on-light.svg" alt="Stacked logo on cream" width="260" height="206" style="max-height:170px"></div><div class="cap"><span>Stacked &middot; on light</span><a href="images/brand/logo-stacked-on-light.svg" download>SVG</a></div></div>
+    </div>
+    <div class="grid g4 mt">
+      <div class="card"><div class="art cream"><img src="images/brand/mark.svg" alt="Full-colour mark" width="104" height="80"></div><div class="cap"><span>Mark</span><a href="images/brand/mark.svg" download>SVG</a></div></div>
+      <div class="card"><div class="art cream"><img src="images/brand/icon.svg" alt="App icon on charcoal" width="128" height="128"></div><div class="cap"><span>App icon / favicon</span><a href="images/brand/icon.svg" download>SVG</a></div></div>
+      <div class="card"><div class="art cream"><img src="images/brand/mark-mono-dark.svg" alt="Charcoal one-colour mark" width="104" height="80"></div><div class="cap"><span>One colour, charcoal</span><a href="images/brand/mark-mono-dark.svg" download>SVG</a></div></div>
+      <div class="card"><div class="art orange"><img src="images/brand/mark-mono-light.svg" alt="Cream one-colour mark on orange" width="104" height="80"></div><div class="cap"><span>One colour, cream</span><a href="images/brand/mark-mono-light.svg" download>SVG</a></div></div>
+    </div>
+    <p class="lede mt" style="margin-bottom:0"><b>Clear space:</b> keep at least the height of the letter "M" clear around the logo. <b>Minimum size:</b> the mark at 24px tall on screen, the full logo at 120px wide. Use the app icon for favicons, social avatars and anything small.</p>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Colour palette</p>
+    <h2>A warm base, turned up.</h2>
+    <p class="lede">v1 was charcoal, cream, burnt orange, olive and warm grey: grown-up, but quiet for a teen audience. v2 keeps charcoal and cream as the base, pushes the orange brighter, and adds five pop colours. Olive and warm grey stay on as supporting neutrals for print and adult-facing pieces.</p>
+    <div class="grid g4">
+      <div class="sw"><div class="c" style="background:#111111;color:#F4EFE6">BASE</div><div class="t"><b>Charcoal</b><code>#111111</code><p>Backgrounds, type on light. The stage everything plays on.</p></div></div>
+      <div class="sw"><div class="c" style="background:#F4EFE6;color:#111;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)">BASE</div><div class="t"><b>Warm Cream</b><code>#F4EFE6</code><p>Paper sections, type on dark. Keeps it warm, not techy.</p></div></div>
+      <div class="sw"><div class="c" style="background:#FF6A2B;color:#111">LEAD</div><div class="t"><b>Pop Orange</b><code>#FF6A2B</code><p>The lead accent and primary buttons. Evolved from Burnt Orange #E96B2C.</p></div></div>
+      <div class="sw"><div class="c" style="background:#FF4D9D;color:#111">POP</div><div class="t"><b>Hot Pink</b><code>#FF4D9D</code><p>Energy and in-person moments.</p></div></div>
+      <div class="sw"><div class="c" style="background:#B8F23A;color:#111">POP</div><div class="t"><b>Lime Pop</b><code>#B8F23A</code><p>Success, progress, "you did it".</p></div></div>
+      <div class="sw"><div class="c" style="background:#8B5CFF;color:#fff">POP</div><div class="t"><b>Ultra Violet</b><code>#8B5CFF</code><p>Production and the studio after dark.</p></div></div>
+      <div class="sw"><div class="c" style="background:#3EC8FF;color:#111">POP</div><div class="t"><b>Sky Pop</b><code>#3EC8FF</code><p>Online, live and digital.</p></div></div>
+      <div class="sw"><div class="c" style="background:#FFC93C;color:#111">POP</div><div class="t"><b>Sunshine</b><code>#FFC93C</code><p>Teens, highlights, badges.</p></div></div>
+    </div>
+    <div class="ratio" aria-hidden="true"><span style="flex:46;background:#111"></span><span style="flex:24;background:#F4EFE6;box-shadow:inset 0 0 0 1px rgba(0,0,0,.08)"></span><span style="flex:12;background:#FF6A2B"></span><span style="flex:4;background:#FF4D9D"></span><span style="flex:4;background:#B8F23A"></span><span style="flex:4;background:#8B5CFF"></span><span style="flex:3;background:#3EC8FF"></span><span style="flex:3;background:#FFC93C"></span></div>
+    <p style="font-size:14px;color:var(--ink-2);margin:0 0 26px">Rough balance on any page: mostly charcoal and cream, orange to lead, pops in small doses. One pop colour per section, never all six at once (except in the mark and the key-colour rule).</p>
+    <p class="lab" style="margin-top:28px">Supporting neutrals</p>
+    <div class="grid g4">
+      <div class="sw"><div class="c" style="background:#66735B;color:#F4EFE6">SUPPORT</div><div class="t"><b>Studio Olive</b><code>#66735B</code><p>Print, signage, adult evening classes.</p></div></div>
+      <div class="sw"><div class="c" style="background:#8C8780;color:#111">SUPPORT</div><div class="t"><b>Warm Grey</b><code>#8C8780</code><p>Secondary text and dividers.</p></div></div>
+    </div>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Program colours</p>
+    <h2>Every program has its own key.</h2>
+    <p class="lede">Each program owns one pop colour across the site, social posts, worksheets and signage, so students learn to find their way by colour.</p>
+    <div>
+      <span class="key" style="--k:#FF6A2B"><i></i>Piano by Ear</span>
+      <span class="key" style="--k:#8B5CFF"><i></i>Music Production</span>
+      <span class="key" style="--k:#3EC8FF"><i></i>Online Hub</span>
+      <span class="key" style="--k:#FF4D9D"><i></i>In Person, Charlottesville</span>
+      <span class="key" style="--k:#FFC93C"><i></i>Teen Producer Lab</span>
+      <span class="key" style="--k:#B8F23A"><i></i>Plans, progress, success</span>
+    </div>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Typography</p>
+    <h2>Bold headlines. Easy reading.</h2>
+    <div class="grid g2 mt">
+      <div class="spec"><p class="type-big">Aa</p><h3>Montserrat</h3><p>ExtraBold 800 and Bold 700. Headlines, buttons, labels and the wordmark. Tight tracking (-0.03 to -0.045em) on big sizes.</p></div>
+      <div class="spec"><p class="type-body">Aa</p><h3>Inter</h3><p>Regular 400, Medium 500 and SemiBold 600. Body copy, UI and long reading. Normal tracking.</p></div>
+    </div>
+    <div class="spec mt scale">
+      <p style="font-family:var(--display);font-weight:800;font-size:clamp(36px,5vw,64px);letter-spacing:-.04em;line-height:1">Real skills. Real music.</p>
+      <p style="font-family:var(--display);font-weight:800;font-size:28px;letter-spacing:-.03em">Make your first track.</p>
+      <p style="font-family:var(--display);font-weight:700;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#d4511a">Kicker label &middot; Montserrat 700 caps</p>
+      <p style="font-size:17px;color:var(--ink-2);max-width:60ch">Body copy is Inter at 17px with generous line height. Keep paragraphs short. Write the way a good teacher talks.</p>
+    </div>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Tagline and voice</p>
+    <h2>Learn. Create. Produce.</h2>
+    <div class="grid g2 mt">
+      <div>
+        <p class="lede" style="margin-bottom:14px">Primary tagline first, then supporting lines for headlines and social:</p>
+        <ul class="tagopts">
+          <li>Learn. Create. Produce.</li>
+          <li>Hear it. Play it.</li>
+          <li>Real skills. Real music. Real progress.</li>
+          <li>Music skills for a bigger you.</li>
+          <li>From ideas to sound.</li>
+          <li>Your track. Live. Loud.</li>
+        </ul>
+      </div>
+      <div>
+        <p class="lede" style="margin-bottom:14px">We sound like the coolest teacher you ever had: encouraging, direct, a little playful, never cheesy.</p>
+        <ul class="voice" style="color:var(--ink-2);padding-left:18px">
+          <li><b>Talk to the learner.</b> "You'll play your first song" beats "Students will acquire skills".</li>
+          <li><b>Promise outcomes, not hours.</b> A song you can play. A beat you made.</li>
+          <li><b>Respect beginners.</b> No jargon without a quick explanation. Nobody is "too old" or "behind".</li>
+          <li><b>Speak to teens and parents at once.</b> Fun up front, reassurance close behind.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Graphic elements</p>
+    <h2>Built from what musicians look at all day.</h2>
+    <div class="grid g4 mt">
+      <div class="demo"><small>Key-colour rule</small><div class="keys-rule" style="height:10px;border-radius:999px"></div><span style="font-size:14px;color:#ddd8cf">Under the site bar, above the foot, on worksheet headers.</span></div>
+      <div class="demo"><small>EQ bars</small><span class="eq" style="font-size:72px;height:.9em"><i></i><i></i><i></i><i></i><i></i></span><span style="font-size:14px;color:#ddd8cf">Animated next to big headlines. Stills on print.</span></div>
+      <div class="demo"><small>MIDI blocks</small><div class="midi"><div style="width:70%;background:#FF6A2B"></div><div style="width:45%;margin-left:30%;background:#FF4D9D"></div><div style="width:55%;margin-left:15%;background:#B8F23A"></div><div style="width:35%;margin-left:55%;background:#8B5CFF"></div></div><span style="font-size:14px;color:#ddd8cf">Backgrounds for social tiles and slides.</span></div>
+      <div class="demo"><small>Track grid</small><div class="grid-trk"><i style="--k:#FF6A2B;--t:10%;--h:40%"></i><i style="--k:#FF4D9D;--t:30%;--h:50%"></i><i style="--k:#B8F23A;--t:5%;--h:30%"></i><i style="--k:#8B5CFF;--t:45%;--h:35%"></i><i style="--k:#3EC8FF;--t:20%;--h:60%"></i><i style="--k:#FFC93C;--t:50%;--h:30%"></i><i style="--k:#FF6A2B;--t:15%;--h:45%"></i><i style="--k:#8B5CFF;--t:35%;--h:40%"></i></div><span style="font-size:14px;color:#ddd8cf">Dividers and patterns.</span></div>
+    </div>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Photography</p>
+    <h2>Real rooms. Real smiles. A splash of colour.</h2>
+    <p class="lede">Candid, warmly lit, mid-moment: someone just nailed the chord, or the beat just dropped. Real gear in view (keyboards, pads, laptops running a DAW), with colour coming from LED light, acoustic panels and clothing rather than filters. Show teens and adults, and a mix of ages, backgrounds and genders.</p>
+    <div class="photos">
+      <img src="images/photos/classroom-1200.webp" alt="Teacher with teen producers" loading="lazy" width="1200" height="670">
+      <img src="images/photos/teen-producer-1200.webp" alt="Teen producing a beat" loading="lazy" width="1200" height="805">
+      <img src="images/photos/piano-lesson-1200.webp" alt="Adult piano lesson" loading="lazy" width="1200" height="805">
+      <img src="images/photos/kids-keyboard-1200.webp" alt="Kids round a keyboard" loading="lazy" width="1200" height="670">
+      <img src="images/photos/online-callin-1200.webp" alt="Online call-in" loading="lazy" width="1200" height="670">
+      <img src="images/photos/pads-1200.webp" alt="Glowing drum pads" loading="lazy" width="1200" height="805">
+      <img src="images/photos/showcase-1200.webp" alt="Showcase night" loading="lazy" width="1200" height="670">
+      <img src="images/photos/studio-space-1200.webp" alt="The studio" loading="lazy" width="1200" height="670">
+    </div>
+    <p style="font-size:13.5px;color:var(--ink-2);margin:14px 0 0">The current photos are AI-generated placeholders (Nano Banana Pro). Replace them with real photos of the studio, teachers and students, with consent, as soon as you have them.</p>
+  </section>
+
+  <section class="bg-sec">
+    <p class="lab">Usage</p>
+    <h2>Keep it loud, keep it clean.</h2>
+    <div class="grid g2 mt">
+      <div class="do"><h3>Do</h3><ul><li>Use the full-colour mark on charcoal or cream</li><li>Lead with one pop colour per section</li><li>Use the one-colour mark on photos and busy backgrounds</li><li>Pair big Montserrat headlines with short Inter body copy</li></ul></div>
+      <div class="dont"><h3>Don't</h3><ul><li>Recolour individual bars or change their order</li><li>Stretch, rotate or add effects to the logo</li><li>Put the full-colour mark on orange, pink or lime</li><li>Use all six pop colours in one layout (the mark aside)</li></ul></div>
+    </div>
+  </section>
+
+</div>
+<div class="sp"></div>
+</div>
+
+</main>
+<div data-foot></div>
+<script src="assets/mmh.js"></script>
+</body>
+</html>
