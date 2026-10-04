@@ -65,7 +65,7 @@ pip install pillow
 python3 tools/fetch-photos.py
 ```
 
-This writes `images/photos/<name>.webp` (2400px) and `<name>-1200.webp`; the copies in the repo were made this way. If a photo file is ever missing, `assets/mmh.js` falls back to the original on the Higgsfield CDN. They are placeholders: swap in real photos of the studio, teachers and students (with consent) when you have them. `images/photos/stephen-portrait.webp` is the real portrait from amanorsac.studio.
+This writes `images/photos/<name>.webp` (2400px) and `<name>-1200.webp`; the copies in the repo were made this way. The site loads photos only from the repo, never from the Higgsfield CDN. They are placeholders: swap in real photos of the studio, teachers and students (with consent) when you have them. `images/photos/stephen-portrait.webp` is the real portrait from amanorsac.studio.
 
 ## To confirm before launch
 
