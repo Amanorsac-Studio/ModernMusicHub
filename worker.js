@@ -121,7 +121,8 @@ async function admin(db, me, request, path, method) {
     const users = await all(db, `SELECT u.*, (SELECT COUNT(*) FROM progress p WHERE p.user_id = u.id) AS lessons_done,
       (SELECT COUNT(*) FROM submissions s WHERE s.user_id = u.id) AS submissions
       FROM users u ORDER BY u.created_at DESC`);
-    return json({ users: users.map(adminUser) });
+    const total = (await first(db, 'SELECT COUNT(*) AS n FROM lessons WHERE published = 1')).n;
+    return json({ users: users.map(adminUser), lessons_total: total });
   }
   if (path === '/api/admin/users' && method === 'POST') return adminCreateUser(db, me, await body(request));
   if ((m = path.match(/^\/api\/admin\/users\/(\d+)$/))) {
@@ -335,13 +336,14 @@ async function updateMe(db, me, b) {
 /* ------------------------------------------------------------------ */
 
 async function hubHome(db, me) {
-  const [lessons, done, callins, announcements, feedback] = await Promise.all([
+  const [lessons, done, callins, announcements, feedback, counts] = await Promise.all([
     all(db, 'SELECT id, program, level, position, title, summary FROM lessons WHERE published = 1 ORDER BY program, level, position, id'),
-    all(db, 'SELECT lesson_id FROM progress WHERE user_id = ?', me.id),
+    all(db, 'SELECT lesson_id, done_at FROM progress WHERE user_id = ?', me.id),
     all(db, 'SELECT * FROM callins WHERE active = 1 ORDER BY position, id'),
     all(db, 'SELECT * FROM announcements ORDER BY pinned DESC, created_at DESC LIMIT 5'),
     all(db, `SELECT s.id, s.title, s.feedback, s.reviewed_by, s.reviewed_at FROM submissions s
-      WHERE s.user_id = ? AND s.status = 'reviewed' ORDER BY s.reviewed_at DESC LIMIT 3`, me.id)
+      WHERE s.user_id = ? AND s.status = 'reviewed' ORDER BY s.reviewed_at DESC LIMIT 3`, me.id),
+    first(db, `SELECT COUNT(*) AS uploads, SUM(status = 'reviewed') AS reviewed FROM submissions WHERE user_id = ?`, me.id)
   ]);
   const doneSet = new Set(done.map(d => d.lesson_id));
   const programs = {};
@@ -350,7 +352,15 @@ async function hubHome(db, me) {
     const next = list.find(l => !doneSet.has(l.id)) || null;
     programs[p] = { total: list.length, done: list.filter(l => doneSet.has(l.id)).length, next };
   }
-  return json({ user: publicUser(me), programs, callins, announcements, feedback });
+  const pub = new Set(lessons.map(l => l.id));
+  const stats = {
+    done: done.filter(d => pub.has(d.lesson_id)).length,
+    uploads: counts.uploads || 0,
+    reviewed: counts.reviewed || 0,
+    // when lessons were ticked, for the streak; the browser counts days in its own time zone
+    done_times: done.map(d => d.done_at).filter(t => t > now() - 120 * 86400)
+  };
+  return json({ user: publicUser(me), programs, callins, announcements, feedback, stats });
 }
 
 async function hubLessons(db, me) {
@@ -397,7 +407,8 @@ async function createSubmission(db, me, b) {
 
 async function adminOverview(db) {
   const weekAgo = now() - 7 * 86400;
-  const [c, leads, pending, queue] = await Promise.all([
+  const twoWeeks = now() - 15 * 86400;
+  const [c, leads, pending, queue, leadTimes, studentPrograms, activity] = await Promise.all([
     first(db, `SELECT
       (SELECT COUNT(*) FROM users WHERE role = 'student' AND status = 'active') AS students,
       (SELECT COUNT(*) FROM users WHERE status = 'pending') AS pending,
@@ -409,9 +420,20 @@ async function adminOverview(db) {
     all(db, 'SELECT * FROM leads ORDER BY created_at DESC LIMIT 5'),
     all(db, "SELECT id, name, email, programs, created_at FROM users WHERE status = 'pending' ORDER BY created_at DESC LIMIT 5"),
     all(db, `SELECT s.id, s.title, s.created_at, u.name AS student_name FROM submissions s JOIN users u ON u.id = s.user_id
-      WHERE s.status = 'new' ORDER BY s.created_at LIMIT 5`)
+      WHERE s.status = 'new' ORDER BY s.created_at LIMIT 5`),
+    // bucketed into days in the browser, so the days are the viewer's own
+    all(db, 'SELECT created_at FROM leads WHERE created_at > ?', twoWeeks),
+    all(db, "SELECT programs FROM users WHERE role = 'student' AND status = 'active'"),
+    all(db, `SELECT * FROM (
+        SELECT 'signup' AS kind, u.name AS who, '' AS what, u.created_at AS at, u.id AS ref FROM users u
+        UNION ALL SELECT 'lead', l.name, l.program, l.created_at, l.id FROM leads l
+        UNION ALL SELECT 'done', u.name, ls.title, p.done_at, ls.id FROM progress p JOIN users u ON u.id = p.user_id JOIN lessons ls ON ls.id = p.lesson_id
+        UNION ALL SELECT 'upload', u.name, s.title, s.created_at, s.id FROM submissions s JOIN users u ON u.id = s.user_id
+      ) ORDER BY at DESC LIMIT 12`)
   ]);
-  return json({ counts: c, leads, pending, queue });
+  const programs = Object.fromEntries(PROGRAMS.map(p => [p, 0]));
+  for (const u of studentPrograms) for (const p of (u.programs || '').split(',')) if (p in programs) programs[p]++;
+  return json({ counts: c, leads, pending, queue, lead_times: leadTimes.map(r => r.created_at), programs, activity });
 }
 
 async function adminCreateUser(db, me, b) {

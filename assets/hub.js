@@ -19,6 +19,7 @@
     var items = [['home','Home','home'],['learn','My Learning','learn'],['live','Live Sessions','live'],['feedback','Feedback','feedback'],['settings','Settings','settings']];
     if(staff) items.push(['admin','Admin dashboard','overview']);
     App.shell(u, items, staff ? 'Hub preview' : 'Student Hub');
+    App.actions([['Share my work', '#feedback', 'upload'], ['My lessons', '#learn', 'learn', true]]);
     lesson.parent = 'learn';
     App.router({ home:home, learn:learn, lesson:lesson, live:live, feedback:feedback, settings:settings,
       admin:function(){ location.href = 'admin.html'; } }, 'home');
@@ -66,6 +67,12 @@
         return '<div class="fb" style="margin-bottom:10px"><b>' + esc(f.title) + '</b>\n' + esc(f.feedback) + '<small>' + esc(f.reviewed_by || 'Your teacher') + ' &middot; ' + App.when(f.reviewed_at) + '</small></div>';
       }).join('') : '<p>Upload a playing video or a track and your teacher will reply here.</p><a class="btn sm" href="#feedback">Share your work</a>';
 
+      var st = d.stats || { done:0, uploads:0, reviewed:0, done_times:[] }, streak = streakDays(st.done_times);
+      var strip = '<div class="stats4">' +
+        tile('var(--lime)', 'check', st.done, 'lessons done') +
+        tile('var(--orange)', 'flame', streak, streak === 1 ? 'day streak' : 'day streak') +
+        tile('var(--violet)', 'upload', st.uploads, st.uploads === 1 ? 'piece shared' : 'pieces shared') +
+        tile('var(--sky)', 'feedback', st.reviewed, 'feedback received') + '</div>';
       main.innerHTML =
         '<div class="hello">' +
           '<div class="hero-card"><p class="kick" style="--k:var(--sun)">' + greeting() + '</p>' +
@@ -73,7 +80,7 @@
             '<p>Keep learning. Keep creating. Pick up where you left off, or bring a question to this week\'s live call-in.</p>' +
             '<a class="btn" href="#learn">Go to my lessons</a>' + bars() + '</div>' +
           '<div class="card"><div class="card-h"><h2>Live this week</h2><a class="more" href="#live">All sessions</a></div>' + liveList(d.callins.slice(0, 3)) + '</div>' +
-        '</div>' +
+        '</div>' + strip +
         '<div class="grid g2">' + cont + '</div>' +
         '<div class="grid g2 mt">' +
           '<div class="card"><h2>From your teacher</h2>' + fb + '</div>' +
@@ -118,8 +125,10 @@
 
   /* ---------- one lesson ---------- */
   function lesson(main, id){
-    return api('GET', '/hub/lessons/' + encodeURIComponent(id)).then(function(d){
+    return (lessonsCache ? Promise.resolve() : getLessons().catch(function(){})).then(function(){ return api('GET', '/hub/lessons/' + encodeURIComponent(id)); }).then(function(d){
       var l = d.lesson, k = P[l.program].k, src = App.embed(l.video_url);
+      var inLevel = (lessonsCache || []).filter(function(x){ return x.program === l.program && x.level === l.level; });
+      var pos = inLevel.map(function(x){ return x.id; }).indexOf(l.id);
       var steps = String(l.body || '').split(/\n+/).map(function(s){ return s.trim(); }).filter(Boolean);
       var video = src
         ? '<div class="video"><iframe src="' + esc(src) + '" title="' + esc(l.title) + '" allow="autoplay; fullscreen; picture-in-picture; encrypted-media" allowfullscreen loading="lazy"></iframe></div>'
@@ -128,7 +137,9 @@
           : '<div class="video"><div class="none"><div><span class="eq" style="font-size:40px;height:.8em" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></span><b>Video coming soon</b><span>Follow the practice steps for now.</span></div></div></div>';
       main.innerHTML =
         '<div class="page-h"><div><p class="kick" style="--k:' + k + '"><a href="#learn/' + l.program + '" style="color:inherit;text-decoration:none">&larr; ' + esc(P[l.program].name) + '</a> &middot; Level ' + l.level + '</p>' +
-          '<h1>' + esc(l.title) + '</h1>' + (l.summary ? '<p>' + esc(l.summary) + '</p>' : '') + '</div></div>' +
+          '<h1>' + esc(l.title) + '</h1>' + (l.summary ? '<p>' + esc(l.summary) + '</p>' : '') +
+          '<div class="lesson-meta">' + (pos >= 0 ? '<span class="badge soft" style="--k:' + k + '">Lesson ' + (pos + 1) + ' of ' + inLevel.length + ' in level ' + l.level + '</span>' : '') +
+          (l.done ? '<span class="badge b-reviewed">Done</span>' : '') + (l.video_url ? '<span class="badge soft" style="--k:var(--sky)">Video</span>' : '') + '</div></div></div>' +
         '<div class="lesson-view" style="--k:' + k + '">' +
           '<div>' + video +
             '<div class="pager">' +
@@ -244,6 +255,17 @@
   }
 
   /* ---------- bits ---------- */
+  function tile(k, ic, n, label){ return '<div class="s"><span class="ic" style="--k:' + k + '">' + icon(ic) + '</span><div><b>' + n + '</b><span>' + label + '</span></div></div>'; }
+  /* days in a row with at least one lesson ticked, counted in the student's own time zone.
+     A streak that ran to yesterday is still alive today. */
+  function streakDays(times){
+    var days = {};
+    (times || []).forEach(function(t){ var x = new Date(t * 1000); days[x.toDateString()] = 1; });
+    var d = new Date(), n = 0;
+    if(!days[d.toDateString()]) d.setDate(d.getDate() - 1);
+    while(days[d.toDateString()]){ n++; d.setDate(d.getDate() - 1); }
+    return n;
+  }
   function first(name){ return String(name || '').split(' ')[0]; }
   function greeting(){ var h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
   function bars(){
