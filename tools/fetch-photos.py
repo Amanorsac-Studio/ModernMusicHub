@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """Download the generated site photos and save web-ready copies.
 
-The photos were made with Nano Banana Pro on Higgsfield. Until this script
-has been run, assets/mmh.js shows the originals straight from the CDN.
+The photos were made with Nano Banana Pro on Higgsfield. The site only
+ever loads the copies in the repo; this script is how they were made.
 Running it writes two WebP files per photo into images/photos/:
 
     <name>.webp        2400px wide, for large screens

@@ -121,29 +121,6 @@ var MMH = {
     }).catch(function(){});
   }
 
-  /* ---- photos: served from images/photos; until they have been fetched
-     into the repo (tools/fetch-photos.sh), fall back to the originals ---- */
-  var CDN = 'https://d8j0ntlcm91z4.cloudfront.net/user_3Gv2OyuWJqIdyavqzYBMqQCnBPK/hf_20261004_004241_';
-  var SRC = {
-    'classroom':'554dbf9b-13a6-43a9-b05f-513ffa4878ed', 'teen-producer':'952b104f-51bc-4b90-8ab8-7312c23b2dd5',
-    'piano-lesson':'8c28a27e-dd34-4906-bfcb-43636dfc13e7', 'kids-keyboard':'88cb250b-a9f2-4b71-b0ff-73b1939e07c2',
-    'online-callin':'0057504b-08ff-493f-a34a-64688a498007', 'home-learner':'32dd960d-bff0-42e5-862f-e71b40f2d5b9',
-    'instructor':'8fd84479-f906-400d-9161-a7ab36e9f492', 'studio-space':'14dd22cb-db5d-4ac2-81b5-10864dbfdf60',
-    'pads':'b9a1066d-f39b-4dea-b058-9836da9402f9', 'showcase':'c82886f1-697f-490a-b26b-2bd33f631b0d',
-    'daw-screen':'1b22bef8-2ffc-47a5-8770-a6e3f703598c', 'family':'e90e131a-d737-4719-a8bd-84e367796d8f'
-  };
-  function rescue(img){
-    var m = (img.getAttribute('src')||'').match(/images\/photos\/([a-z-]+?)(?:-1200)?\.webp$/);
-    if(!m || !SRC[m[1]] || img.dataset.rescued) return;
-    img.dataset.rescued = '1';
-    img.removeAttribute('srcset');
-    img.src = CDN + SRC[m[1]] + '.png';
-  }
-  $$('img').forEach(function(img){
-    if(img.complete && img.naturalWidth === 0) rescue(img);
-    img.addEventListener('error', function(){ rescue(img); });
-  });
-
   /* ---- sections rise into place as they arrive ---- */
   if('IntersectionObserver' in window){
     var io = new IntersectionObserver(function(es){
