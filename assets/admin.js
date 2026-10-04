@@ -13,15 +13,19 @@
     me = u;
     if(u.role !== 'admin' && u.role !== 'teacher'){ location.href = 'hub.html'; return; }
     App.shell(u, [
-      ['overview','Overview','overview'], ['leads','Trial requests','leads'], ['students','Students','people'],
-      ['lessons','Lessons','lessons'], ['live','Live sessions','live'], ['feedback','Feedback','feedback'],
-      ['news','Announcements','news'], ['hub','View the Hub','learn']
+      ['overview','Overview','overview'],
+      ['-','People'], ['leads','Trial requests','leads'], ['students','Students','people'],
+      ['-','Teaching'], ['lessons','Lessons','lessons'], ['live','Live sessions','live'], ['feedback','Feedback','feedback'], ['news','Announcements','news'],
+      ['-','Preview'], ['hub','View the Hub','learn']
     ], u.role === 'admin' ? 'Admin' : 'Teacher');
+    App.actions([['Add student', '#students/new', 'userplus'], ['New lesson', '#lessons/new', 'plus', true]]);
     App.router({ overview:overview, leads:leads, students:students, lessons:lessons, live:live, feedback:feedback, news:news,
       hub:function(){ location.href = 'hub.html'; } }, 'overview');
     refreshCounts();
   });
 
+  /* after a "new" panel closes, step the address back so the quick action works again */
+  function clearNew(){ if(/\/new$/.test(location.hash)) history.replaceState(null, '', location.hash.replace(/\/new$/, '')); }
   function refreshCounts(){
     api('GET', '/admin/overview').then(function(d){
       App.count('leads', d.counts.new_leads); App.count('students', d.counts.pending); App.count('feedback', d.counts.to_review);
@@ -40,12 +44,16 @@
   function overview(main){
     return api('GET', '/admin/overview').then(function(d){
       var c = d.counts;
-      main.innerHTML = head('Overview', 'Hello, ' + esc(me.name.split(' ')[0]) + '.', 'Here\'s what needs you today.') +
+      main.innerHTML = head('Overview', greeting() + ', ' + esc(me.name.split(' ')[0]) + '.', 'Here\'s what needs you today.') +
         '<div class="grid g4">' +
-          stat('#leads', c.new_leads, 'New trial requests', 'var(--pink)') +
-          stat('#students', c.pending, 'Students waiting for approval', 'var(--sun)') +
-          stat('#feedback', c.to_review, 'Uploads to review', 'var(--violet)') +
-          stat('#students', c.students, 'Active students', 'var(--lime)') +
+          stat('#leads', c.new_leads, 'New trial requests', 'var(--pink)', 'inbox', c.leads_week + ' this week') +
+          stat('#students', c.pending, 'Waiting for approval', 'var(--sun)', 'userplus', c.pending ? 'Approve to open their Hub' : 'All approved') +
+          stat('#feedback', c.to_review, 'Uploads to review', 'var(--violet)', 'feedback', c.to_review ? 'Students are waiting' : 'All caught up') +
+          stat('#students', c.students, 'Active students', 'var(--lime)', 'people', c.completions_week + ' lessons done this week') +
+        '</div>' +
+        '<div class="grid mt" style="grid-template-columns:minmax(0,1.5fr) minmax(0,1fr)" id="charts">' +
+          '<div class="card"><div class="card-h"><h2>Trial requests, last 14 days</h2></div>' + leadChart(d.lead_times) + '</div>' +
+          '<div class="card"><div class="card-h"><h2>Active students by program</h2></div>' + programBars(d.programs) + '</div>' +
         '</div>' +
         '<div class="grid g3 mt">' +
           '<div class="card"><div class="card-h"><h2>Latest trial requests</h2><a class="more" href="#leads">All</a></div>' +
@@ -54,23 +62,74 @@
                 '<span class="grow"><b>' + esc(l.name) + '</b><small>' + esc(programName(l.program)) + ' &middot; ' + App.when(l.created_at) + '</small></span>' +
                 '<span class="badge b-' + l.status + '">' + LEAD_LABEL[l.status] + '</span></a>';
             }).join('') + '</div>' : '<p class="hint">No requests yet. They arrive here from the free trial form on the website.</p>') + '</div>' +
-          '<div class="card"><div class="card-h"><h2>Waiting for approval</h2><a class="more" href="#students">All</a></div>' +
-            (d.pending.length ? '<div class="rows">' + d.pending.map(function(u){
-              return '<a class="row" href="#students/' + u.id + '"><span class="dot" style="--k:var(--sun)"></span><span class="grow"><b>' + esc(u.name) + '</b><small>' + esc(u.email) + '</small></span><small>' + App.when(u.created_at) + '</small></a>';
-            }).join('') + '</div>' : '<p class="hint">Nobody waiting. New sign-ups appear here.</p>') + '</div>' +
-          '<div class="card"><div class="card-h"><h2>Feedback queue</h2><a class="more" href="#feedback">All</a></div>' +
-            (d.queue.length ? '<div class="rows">' + d.queue.map(function(s){
-              return '<a class="row" href="#feedback/' + s.id + '"><span class="dot" style="--k:var(--violet)"></span><span class="grow"><b>' + esc(s.title) + '</b><small>' + esc(s.student_name) + ' &middot; ' + App.when(s.created_at) + '</small></span></a>';
-            }).join('') + '</div>' : '<p class="hint">All caught up.</p>') + '</div>' +
-        '</div>' +
-        '<div class="grid g3 mt">' +
-          '<div class="card dark"><p class="kick" style="--k:var(--lime)">This week</p><h2 style="font-size:28px;margin:0">' + c.completions_week + ' lessons completed</h2><p>' + c.leads_week + ' trial requests &middot; ' + c.lessons + ' lessons published</p></div>' +
-          '<a class="card tint" style="--k:var(--orange);text-decoration:none;color:inherit" href="#lessons"><h2>Add a lesson</h2><p>Paste a YouTube or Vimeo link and the practice steps.</p></a>' +
-          '<a class="card tint" style="--k:var(--sky);text-decoration:none;color:inherit" href="#live"><h2>Edit the call-in schedule</h2><p>Changes show on the website and in the Hub straight away.</p></a>' +
+          '<div class="card"><div class="card-h"><h2>Needs you</h2></div><div class="rows">' +
+            d.pending.map(function(u){
+              return '<a class="row" href="#students/' + u.id + '"><span class="dot" style="--k:var(--sun)"></span><span class="grow"><b>Approve ' + esc(u.name) + '</b><small>Signed up ' + App.when(u.created_at) + '</small></span></a>';
+            }).join('') +
+            d.queue.map(function(q){
+              return '<a class="row" href="#feedback/' + q.id + '"><span class="dot" style="--k:var(--violet)"></span><span class="grow"><b>Review "' + esc(q.title) + '"</b><small>' + esc(q.student_name) + ' &middot; ' + App.when(q.created_at) + '</small></span></a>';
+            }).join('') +
+            (!d.pending.length && !d.queue.length ? '<p class="hint">Nothing waiting. Nice.</p>' : '') + '</div></div>' +
+          '<div class="card"><div class="card-h"><h2>Recent activity</h2></div>' + feed(d.activity) + '</div>' +
         '</div>';
+      if(matchMedia('(max-width:900px)').matches) $('#charts', main).style.gridTemplateColumns = '1fr';
     });
   }
-  function stat(href, n, label, k){ return '<a class="card stat" href="' + href + '" style="--k:' + k + '"><b>' + n + '</b><span>' + label + '</span></a>'; }
+  function greeting(){ var h = new Date().getHours(); return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening'; }
+  function stat(href, n, label, k, ic, sub){
+    return '<a class="card stat" href="' + href + '" style="--k:' + k + '"><span class="ic">' + App.icon(ic) + '</span><b>' + n + '</b><span>' + label + '</span>' +
+      (sub ? '<small>' + esc(sub) + '</small>' : '') + '</a>';
+  }
+
+  /* one series, one hue: columns per day, value on the latest and the busiest day */
+  function leadChart(times){
+    var days = [], today = new Date(); today.setHours(0,0,0,0);
+    for(var i = 13; i >= 0; i--){ var dd = new Date(today); dd.setDate(today.getDate() - i); days.push({ d:dd, n:0 }); }
+    (times || []).forEach(function(t){
+      var x = new Date(t * 1000); x.setHours(0,0,0,0);
+      days.forEach(function(day){ if(day.d.getTime() === x.getTime()) day.n++; });
+    });
+    var max = Math.max.apply(null, days.map(function(x){ return x.n; })), total = days.reduce(function(a,x){ return a + x.n; }, 0);
+    var top = Math.max(2, Math.ceil(max / 2) * 2), W = 560, H = 190, L = 26, B = 24, T = 18, plotH = H - B - T, band = (W - L) / 14, bw = Math.min(24, band - 8);
+    var y = function(v){ return T + plotH - (v / top) * plotH; };
+    var busiest = days.reduce(function(a, x, i){ return x.n > days[a].n ? i : a; }, 0);
+    var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Trial requests per day for the last 14 days, ' + total + ' in total">';
+    [0, top / 2, top].forEach(function(v){
+      svg += '<line class="grid-l" x1="' + L + '" x2="' + W + '" y1="' + y(v) + '" y2="' + y(v) + '"/><text class="tick" x="' + (L - 8) + '" y="' + (y(v) + 4) + '" text-anchor="end">' + v + '</text>';
+    });
+    days.forEach(function(day, i){
+      var cx = L + band * i + band / 2, h = day.n ? Math.max(4, (day.n / top) * plotH) : 3, x0 = cx - bw / 2, y0 = T + plotH - h, r = Math.min(4, h);
+      var path = 'M' + x0 + ',' + (T + plotH) + 'V' + (y0 + r) + 'Q' + x0 + ',' + y0 + ' ' + (x0 + r) + ',' + y0 + 'H' + (x0 + bw - r) + 'Q' + (x0 + bw) + ',' + y0 + ' ' + (x0 + bw) + ',' + (y0 + r) + 'V' + (T + plotH) + 'Z';
+      var label = day.d.toLocaleDateString(undefined, { weekday:'short', month:'short', day:'numeric' });
+      svg += '<g class="cg"><path class="col' + (day.n ? '' : ' zero') + '" d="' + path + '"/>' +
+        '<rect class="hit" x="' + (L + band * i) + '" y="' + T + '" width="' + band + '" height="' + plotH + '" tabindex="0" data-tip="' + day.n + ' request' + (day.n === 1 ? '' : 's') + '" data-tip-sub="' + esc(label) + '"/></g>';
+      if(day.n && (i === 13 || i === busiest)) svg += '<text class="val" x="' + cx + '" y="' + (y0 - 6) + '" text-anchor="middle">' + day.n + '</text>';
+      if(i % 2 === 1 || i === 13) svg += '<text class="tick" x="' + cx + '" y="' + (H - 6) + '" text-anchor="middle">' + (i === 13 ? 'Today' : day.d.toLocaleDateString(undefined, { month:'numeric', day:'numeric' })) + '</text>';
+    });
+    svg += '</svg>';
+    var table = '<table class="sr"><caption>Trial requests per day</caption><tr><th>Day</th><th>Requests</th></tr>' +
+      days.map(function(day){ return '<tr><td>' + esc(day.d.toDateString()) + '</td><td>' + day.n + '</td></tr>'; }).join('') + '</table>';
+    return '<p class="hint" style="margin:-6px 0 12px">' + total + ' in the last two weeks</p><div class="chart">' + svg + table + '</div>';
+  }
+
+  /* how many active students are in each program; the label carries the program's colour key */
+  function programBars(counts){
+    var list = PROGRAM_KEYS.map(function(p){ return { p:p, n:(counts || {})[p] || 0 }; }).sort(function(a,b){ return b.n - a.n; });
+    var max = Math.max(1, list[0].n);
+    return '<div class="hbars">' + list.map(function(x){
+      return '<div class="hbar"><span class="lab"><i style="--k:' + P[x.p].k + '"></i>' + esc(P[x.p].name) + '</span>' +
+        '<span class="track"><span class="fill' + (x.n ? '' : ' zero') + '" style="width:' + (x.n ? Math.max(4, 100 * x.n / max) : 2) + '%" data-tip="' + x.n + ' active student' + (x.n === 1 ? '' : 's') + '" data-tip-sub="' + esc(P[x.p].name) + '"></span><span class="num">' + x.n + '</span></span></div>';
+    }).join('') + '</div><p class="hint" style="margin:14px 0 0">A student can be in more than one program.</p>';
+  }
+
+  function feed(list){
+    if(!list || !list.length) return '<p class="hint">Activity shows up here as students sign up, learn and share.</p>';
+    var K = { signup:['var(--sun)','userplus','joined the Hub'], lead:['var(--pink)','inbox','asked for a free trial'], done:['var(--lime)','check','finished'], upload:['var(--violet)','upload','shared'] };
+    return '<div class="feed">' + list.map(function(e){
+      var k = K[e.kind] || K.lead, what = e.kind === 'lead' ? (e.what ? ' (' + programName(e.what) + ')' : '') : e.what ? ' "' + e.what + '"' : '';
+      return '<div class="ev"><span class="ic" style="--k:' + k[0] + '">' + App.icon(k[1]) + '</span><div><p><b>' + esc(e.who) + '</b> ' + k[2] + esc(what) + '</p><small>' + App.when(e.at) + '</small></div></div>';
+    }).join('') + '</div>';
+  }
   function programName(p){ return P[p] ? P[p].name : (p === 'both' ? 'Piano and Production' : p === 'inperson' ? 'Studio visit' : p || 'Not sure yet'); }
 
   /* ---------- trial requests ---------- */
@@ -88,9 +147,9 @@
         $('#list', main).innerHTML = list.length ? '<div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th>Wants</th><th>Where / when</th><th>Status</th><th class="r">Received</th></tr></thead><tbody>' +
           list.map(function(l){
             return '<tr data-id="' + l.id + '"><td><b>' + esc(l.name) + '</b><small>' + esc(l.email) + '</small></td>' +
-              '<td>' + esc(programName(l.program)) + '<br><small>' + esc(l.learner || '') + '</small></td>' +
-              '<td>' + esc(l.format || '') + '<br><small>' + esc(l.when_pref || '') + '</small></td>' +
-              '<td><span class="badge b-' + l.status + '">' + LEAD_LABEL[l.status] + '</span></td><td class="r"><small>' + App.when(l.created_at) + '</small></td></tr>';
+              '<td data-l="Wants">' + esc(programName(l.program)) + '<br><small>' + esc(l.learner || '') + '</small></td>' +
+              '<td data-l="Where">' + esc(l.format || '') + '<br><small>' + esc(l.when_pref || '') + '</small></td>' +
+              '<td data-l="Status"><span class="badge b-' + l.status + '">' + LEAD_LABEL[l.status] + '</span></td><td class="r" data-l="Received"><small>' + App.when(l.created_at) + '</small></td></tr>';
           }).join('') + '</tbody></table></div>' : empty('No trial requests here', 'Requests from the free trial form on the website land in this list.');
         $$('#list tr[data-id]', main).forEach(function(tr){ tr.addEventListener('click', function(){ openLead(+tr.getAttribute('data-id')); }); });
       }
@@ -134,7 +193,7 @@
   function students(main, openId){
     var filter = 'all';
     return api('GET', '/admin/users').then(function(d){
-      var all = d.users;
+      var all = d.users, total = d.lessons_total || 0;
       function draw(){
         var q = ($('#q', main) || {}).value || '';
         var list = all.filter(function(u){
@@ -144,13 +203,14 @@
           if(PROGRAM_KEYS.indexOf(filter) >= 0 && u.programs.indexOf(filter) < 0) return false;
           return !q || (u.name + ' ' + u.email).toLowerCase().indexOf(q.toLowerCase()) >= 0;
         });
-        $('#list', main).innerHTML = list.length ? '<div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th>Programs</th><th>Status</th><th class="r">Lessons done</th><th class="r">Last seen</th></tr></thead><tbody>' +
+        $('#list', main).innerHTML = list.length ? '<div class="table-wrap"><table class="t"><thead><tr><th>Name</th><th>Programs</th><th>Status</th><th>Progress</th><th class="r">Last seen</th></tr></thead><tbody>' +
           list.map(function(u){
             return '<tr data-id="' + u.id + '"><td><div style="display:flex;gap:12px;align-items:center"><span class="avatar" style="--k:' + App.colorFor(u.email) + ';width:34px;height:34px;font-size:13px">' + esc(App.initials(u.name)) + '</span>' +
               '<span><b>' + esc(u.name) + '</b><small>' + esc(u.email) + '</small></span></div></td>' +
-              '<td>' + progBadges(u.programs) + '</td>' +
-              '<td><span class="badge b-' + u.status + '">' + esc(u.status) + '</span>' + (u.role !== 'student' ? ' <span class="badge b-' + u.role + '">' + esc(u.role) + '</span>' : '') + '</td>' +
-              '<td class="r">' + (u.lessons_done || 0) + '</td><td class="r"><small>' + App.when(u.last_login) + '</small></td></tr>';
+              '<td data-l="Programs">' + progBadges(u.programs) + '</td>' +
+              '<td data-l="Status"><span class="badge b-' + u.status + '">' + esc(u.status) + '</span>' + (u.role !== 'student' ? ' <span class="badge b-' + u.role + '">' + esc(u.role) + '</span>' : '') + '</td>' +
+              '<td data-l="Progress"><span class="mini"><span class="bar"><i style="width:' + (total ? Math.min(100, Math.round(100 * (u.lessons_done || 0) / total)) : 0) + '%;--k:var(--lime)"></i></span><span>' + (u.lessons_done || 0) + ' / ' + total + '</span></span></td>' +
+              '<td class="r" data-l="Last seen"><small>' + App.when(u.last_login) + '</small></td></tr>';
           }).join('') + '</tbody></table></div>' : empty('Nobody here yet', 'Students appear when they create an account, or when you add them.');
         $$('#list tr[data-id]', main).forEach(function(tr){ tr.addEventListener('click', function(){ openUser(+tr.getAttribute('data-id')); }); });
       }
@@ -205,7 +265,7 @@
           '<form class="f" id="nf"><label>Name<input name="name" required></label><label>Email<input name="email" type="email" required></label>' +
           '<label>Programs</label>' + programChecks([]) + roleSelect('student') +
           '<p class="hint">They\'re approved straight away. You\'ll get a temporary password to send them.</p>' +
-          '<div class="acts"><button class="btn" type="submit">Add</button></div></form><div id="pwbox"></div>');
+          '<div class="acts"><button class="btn" type="submit">Add</button></div></form><div id="pwbox"></div>', clearNew);
         $('#nf', d).addEventListener('submit', function(e){
           e.preventDefault();
           var f = this;
@@ -216,21 +276,21 @@
           }).catch(App.fail);
         });
       }
-      main.innerHTML = head('Students', 'Your students.', 'Approve new sign-ups, set programs and keep notes.', '<button class="btn" type="button" id="add">Add a student</button>') +
+      main.innerHTML = head('Students', 'Your students.', 'Approve new sign-ups, set programs and keep notes.') +
         '<div class="tools"><input type="search" id="q" placeholder="Search name or email"><div class="pills" id="pills">' +
           [['all','Everyone'],['pending','Waiting'],['active','Active'],['piano','Piano'],['production','Production'],['teenlab','Teen Lab'],['staff','Staff']].map(function(p){
             return '<button type="button" data-f="' + p[0] + '" class="' + (p[0] === filter ? 'on' : '') + '">' + p[1] + '</button>';
           }).join('') + '</div></div><div id="list"></div>';
-      $('#add', main).addEventListener('click', addUser);
       $('#q', main).addEventListener('input', draw);
       $$('#pills button', main).forEach(function(b){ b.addEventListener('click', function(){ filter = b.getAttribute('data-f'); $$('#pills button', main).forEach(function(x){ x.classList.toggle('on', x === b); }); draw(); }); });
       draw();
-      if(openId) openUser(+openId);
+      if(openId === 'new') addUser();
+      else if(openId) openUser(+openId);
     });
   }
 
   /* ---------- lessons ---------- */
-  function lessons(main){
+  function lessons(main, arg){
     var prog = 'piano';
     return api('GET', '/admin/lessons').then(function(d){
       var all = d.lessons;
@@ -262,7 +322,7 @@
           '<div class="two"><label>Order in level<input name="position" type="number" min="0" value="' + l.position + '"></label>' +
           '<label class="check" style="align-self:end"><input type="checkbox" name="published"' + (l.published ? ' checked' : '') + '> Live in the Hub</label></div>' +
           '<div class="acts"><button class="btn" type="submit">' + (isNew ? 'Add lesson' : 'Save') + '</button>' +
-          (isNew ? '' : '<a class="btn ghost" href="hub.html#lesson/' + l.id + '" target="_blank" rel="noopener">Preview</a><button class="btn danger" type="button" id="del">Delete</button>') + '</div></form>');
+          (isNew ? '' : '<a class="btn ghost" href="hub.html#lesson/' + l.id + '" target="_blank" rel="noopener">Preview</a><button class="btn danger" type="button" id="del">Delete</button>') + '</div></form>', clearNew);
         $('#lf', d).addEventListener('submit', function(e){
           e.preventDefault();
           var b = App.formData(this);
@@ -278,11 +338,11 @@
         });
       }
       function syncTabs(){ $$('.tabs button', main).forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-p') === prog); }); }
-      main.innerHTML = head('Lessons', 'The lesson library.', 'What students see in My Learning. Add a video link and practice steps to each lesson.', '<button class="btn" type="button" id="add">New lesson</button>') +
+      main.innerHTML = head('Lessons', 'The lesson library.', 'What students see in My Learning. Add a video link and practice steps to each lesson.') +
         '<div class="tabs"><button type="button" data-p="piano" class="on" style="--k:var(--orange)">Piano by Ear</button><button type="button" data-p="production" style="--k:var(--violet)">Music Production</button></div><div id="list"></div>';
       $$('.tabs button', main).forEach(function(b){ b.addEventListener('click', function(){ prog = b.getAttribute('data-p'); syncTabs(); draw(); }); });
-      $('#add', main).addEventListener('click', function(){ edit(null, 1); });
       draw();
+      if(arg === 'new') edit(null, 1);
     });
   }
 
@@ -340,9 +400,9 @@
         var list = all.filter(function(s){ return filter === 'all' || s.status === filter; });
         $('#list', main).innerHTML = list.length ? '<div class="table-wrap"><table class="t"><thead><tr><th>Upload</th><th>Student</th><th>Lesson</th><th>Status</th><th class="r">Sent</th></tr></thead><tbody>' +
           list.map(function(s){
-            return '<tr data-id="' + s.id + '"><td><b>' + esc(s.title) + '</b><small>' + esc((s.note || '').slice(0, 80)) + '</small></td><td>' + esc(s.student_name) + '</td>' +
-              '<td><small>' + esc(s.lesson_title || '') + '</small></td><td><span class="badge ' + (s.status === 'reviewed' ? 'b-reviewed' : 'b-new') + '">' + (s.status === 'reviewed' ? 'Reviewed' : 'To review') + '</span></td>' +
-              '<td class="r"><small>' + App.when(s.created_at) + '</small></td></tr>';
+            return '<tr data-id="' + s.id + '"><td><b>' + esc(s.title) + '</b><small>' + esc((s.note || '').slice(0, 80)) + '</small></td><td data-l="Student">' + esc(s.student_name) + '</td>' +
+              '<td data-l="Lesson"><small>' + esc(s.lesson_title || '') + '</small></td><td data-l="Status"><span class="badge ' + (s.status === 'reviewed' ? 'b-reviewed' : 'b-new') + '">' + (s.status === 'reviewed' ? 'Reviewed' : 'To review') + '</span></td>' +
+              '<td class="r" data-l="Sent"><small>' + App.when(s.created_at) + '</small></td></tr>';
           }).join('') + '</tbody></table></div>' : empty(filter === 'new' ? 'All caught up' : 'No uploads yet', 'Student uploads land here for your feedback.');
         $$('#list tr[data-id]', main).forEach(function(tr){ tr.addEventListener('click', function(){ open(+tr.getAttribute('data-id')); }); });
       }

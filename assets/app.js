@@ -80,7 +80,13 @@ var App = (function(){
     play:'<path d="M7 4l13 8-13 8z" fill="currentColor" stroke="none"/>',
     check:'<path d="M5 12l5 5 9-11"/>',
     video:'<rect x="2" y="5" width="15" height="14" rx="2"/><path d="M17 10l5-3v10l-5-3z"/>',
-    music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>'
+    music:'<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+    flame:'<path d="M12 22c4 0 7-2.8 7-7 0-4.5-4-7-4.5-11-2.5 2-3.5 4.5-3.5 6.5C9.5 9 9 7.5 9 6c-2.5 2-4 5-4 9 0 4.2 3 7 7 7z"/>',
+    upload:'<path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 16v3a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-3"/>',
+    star:'<path d="M12 3l2.6 5.4 5.9.8-4.3 4.1 1 5.8L12 16.4 6.8 19.1l1-5.8L3.5 9.2l5.9-.8z"/>',
+    plus:'<path d="M12 5v14M5 12h14"/>',
+    userplus:'<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M19 8v6M16 11h6"/>',
+    inbox:'<path d="M3 13h5l1.5 3h5L16 13h5"/><path d="M5 5h14l2 8v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-6z"/>'
   };
   function icon(name){ return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + (ICON[name]||'') + '</svg>'; }
 
@@ -92,15 +98,29 @@ var App = (function(){
       '<a class="brand" href="index.html" aria-label="Modern Music Hub website">' + MARK + '<b>Modern<br>Music Hub</b></a>' +
       '<p class="role">' + esc(roleLabel) + '</p>' +
       '<nav aria-label="Sections">' + items.map(function(it){
+        if(it[0] === '-') return '<p class="grp">' + esc(it[1]) + '</p>';
         return '<a href="#' + it[0] + '" data-r="' + it[0] + '">' + icon(it[2]) + '<span>' + esc(it[1]) + '</span><span class="count" data-count="' + it[0] + '" hidden></span></a>';
       }).join('') + '</nav>' +
       '<a class="site-link" href="index.html">&larr; Back to the website</a>' +
       '<div class="me"><span class="avatar" style="--k:' + colorFor(user.email) + '">' + esc(initials(user.name)) + '</span>' +
         '<div><b>' + esc(user.name) + '</b><small>' + esc(user.email) + '</small></div>' +
         '<button class="out" type="button" title="Sign out" aria-label="Sign out">' + icon('out') + '</button></div>';
+    var top = $('#topbar');
+    if(top){
+      top.innerHTML = '<span class="crumb">' + esc(roleLabel) + ' / <b id="crumb"></b></span>' +
+        '<span class="date"><i></i>' + new Date().toLocaleDateString(undefined, { weekday:'long', month:'long', day:'numeric' }) + '</span>' +
+        '<span class="qa" id="qa"></span>';
+    }
     $('.out', side).addEventListener('click', function(){
       api('POST', '/auth/logout').finally(function(){ location.href = 'login.html'; });
     });
+  }
+  /* buttons in the top bar: [label, href, icon, primary?] */
+  function actions(list){
+    var qa = $('#qa'); if(!qa) return;
+    qa.innerHTML = list.map(function(a){
+      return '<a class="btn sm' + (a[3] ? '' : ' ghost') + '" href="' + a[1] + '">' + (a[2] ? '<span style="display:inline-flex;width:16px;height:16px">' + icon(a[2]) + '</span>' : '') + esc(a[0]) + '</a>';
+    }).join('');
   }
   function count(key, n){
     var el = $('[data-count="' + key + '"]');
@@ -116,6 +136,10 @@ var App = (function(){
       if(!routes[name]){ name = fallback; arg = ''; }
       $$('#side nav a').forEach(function(a){ var r = a.getAttribute('data-r');
         a.classList.toggle('on', r === name || (!!routes[name].parent && r === routes[name].parent)); });
+      var onA = $('#side nav a.on');
+      if(onA && matchMedia('(max-width:900px)').matches){ var nv = onA.parentNode; nv.scrollLeft = onA.offsetLeft - (nv.clientWidth - onA.offsetWidth) / 2; }
+      var cur = $('#side nav a.on span'), cr = $('#crumb');
+      if(cr) cr.textContent = cur ? cur.textContent : '';
       var main = $('#main');
       main.innerHTML = '<div class="loading"><span class="eq" aria-label="Loading"><i></i><i></i><i></i><i></i><i></i></span></div>';
       window.scrollTo(0, 0);
@@ -162,6 +186,21 @@ var App = (function(){
     navigator.clipboard.writeText(b.getAttribute('data-copy')).then(function(){ toast('Copied'); }, function(){ toast('Select it and copy it by hand', true); });
   });
 
+  /* hover / focus tooltips: data-tip="main line" data-tip-sub="second line" */
+  var tipEl = null;
+  function showTip(el){
+    if(!tipEl){ tipEl = document.createElement('div'); tipEl.className = 'tip'; tipEl.setAttribute('aria-hidden', 'true'); document.body.appendChild(tipEl); }
+    tipEl.innerHTML = esc(el.getAttribute('data-tip')) + (el.getAttribute('data-tip-sub') ? '<small>' + esc(el.getAttribute('data-tip-sub')) + '</small>' : '');
+    var r = el.getBoundingClientRect();
+    tipEl.style.left = (r.left + r.width / 2) + 'px';
+    tipEl.style.top = r.top + 'px';
+    tipEl.hidden = false;
+  }
+  function hideTip(){ if(tipEl) tipEl.hidden = true; }
+  ['mouseover','focusin'].forEach(function(ev){ document.addEventListener(ev, function(e){ var t = e.target.closest && e.target.closest('[data-tip]'); if(t) showTip(t); }); });
+  ['mouseout','focusout'].forEach(function(ev){ document.addEventListener(ev, function(e){ if(e.target.closest && e.target.closest('[data-tip]')) hideTip(); }); });
+  window.addEventListener('scroll', hideTip, true);
+
   /* who's signed in; sends people who aren't to the right place */
   function me(){
     return api('GET', '/me').then(function(d){
@@ -183,6 +222,6 @@ var App = (function(){
   var EMPTY_MARK = '<div class="mark">' + MARK + '</div>';
 
   return { $:$, $$:$$, esc:esc, api:api, toast:toast, fail:fail, when:when, PROGRAM:PROGRAM, COLORS:COLORS, icon:icon,
-    shell:shell, count:count, router:router, panel:panel, formData:formData, copyBox:copyBox, me:me, embed:embed,
+    shell:shell, actions:actions, count:count, router:router, panel:panel, formData:formData, copyBox:copyBox, me:me, embed:embed,
     initials:initials, colorFor:colorFor, MARK:MARK, EMPTY_MARK:EMPTY_MARK };
 })();
